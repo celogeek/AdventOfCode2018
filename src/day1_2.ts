@@ -2,7 +2,7 @@
 
 import loadData from "./data";
 
-const data = loadData(__dirname + "/day1.txt");
+const data = loadData(__dirname + "/day1.txt").map(eval);
 const results: Set<number> = new Set();
 let r = 0;
 while ( true ) {
