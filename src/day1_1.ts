@@ -1,7 +1,8 @@
 /* tslint:disable:no-console */
 
-import {data} from "./data";
+import loadData from "./data";
 
+const data = loadData(__dirname + "/day1.txt");
 const result = data.reduce((previous, next) => previous + next, 0);
 
 console.log(result);
