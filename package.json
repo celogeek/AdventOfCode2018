@@ -1,5 +1,5 @@
 {
-  "name": "AdventOfCode2018",
+  "name": "advent-of-code-2018",
   "version": "1.0.0",
   "main": "dist/index.js",
   "author": "Celogeek",
@@ -12,5 +12,8 @@
   },
   "dependencies": {
     "@types/node": "^10.12.11"
+  },
+  "scripts": {
+    "day": "ts-node src"
   }
 }
