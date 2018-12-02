@@ -1,0 +1,16 @@
+{
+  "name": "AdventOfCode2018",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "author": "Celogeek",
+  "license": "MIT",
+  "devDependencies": {
+    "fs": "^0.0.1-security",
+    "ts-node": "^7.0.1",
+    "tslint": "^5.11.0",
+    "typescript": "^3.2.1"
+  },
+  "dependencies": {
+    "@types/node": "^10.12.11"
+  }
+}
