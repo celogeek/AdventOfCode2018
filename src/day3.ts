@@ -9,12 +9,11 @@ class Fabric {
     public width: number;
     public height: number;
     constructor(params: string) {
-        const spl = params.replace(/[^0-9]+/g, " ").split(" ");
-        this.id = parseInt(spl[1], 0);
-        this.left = parseInt(spl[2], 10);
-        this.top = parseInt(spl[3], 10);
-        this.width = parseInt(spl[4], 10);
-        this.height = parseInt(spl[5], 10);
+        const m = params.match(/\d+/g);
+        if (m === null) {
+            throw new Error("bad entry " + params);
+        }
+        [this.id, this.left, this.top, this.width, this.height] = m.map((x) => parseInt(x, 10));
     }
 
     public place(r: number[][][]): Set<number> {
@@ -31,13 +30,7 @@ class Fabric {
     }
 }
 
-const result: number[][][] = [];
-for (let i = 0; i < 1200; i++) {
-    result[i] = [];
-    for (let j = 0; j < 1200; j++) {
-        result[i][j] = [];
-    }
-}
+const result: number[][][] = new Array(1000).fill(null).map(() => new Array(1000).fill(null).map(() => []));
 const data = loadData(__dirname + "/day3.txt");
 const goodId = new Set<number>();
 data.forEach((d) => {
