@@ -1,35 +1,61 @@
 /* tslint:disable:no-console */
 /* tslint:disable:interface-over-type-literal */
 
-import lodash from "lodash";
 import loadData from "./data";
 
-const result: {
-    [key: string]: Set<string>,
-} = {};
-
-loadData(__dirname + "/day7.txt").forEach((data) => {
-    const letter = data.substr(5, 1);
-    const nextLetter = data.substr(36, 1);
-    if (!result[letter]) {
-        result[letter] = new Set();
+class Jobs {
+    private tasks: {[key: string]: {
+        dependencies: Set<string>,
+        onReady: Set<string>,
+    }};
+    private ready: Set<string>;
+    constructor() {
+        this.tasks = {};
+        this.ready = new Set();
     }
-    if (!result[nextLetter]) {
-        result[nextLetter] = new Set();
+
+    public add(job: string, dependency: string) {
+        [job, dependency].forEach((k) => {
+            if (!this.tasks[k]) {
+                this.tasks[k] = {
+                    dependencies: new Set(),
+                    onReady: new Set(),
+                };
+                this.ready.add(k);
+            }
+        });
+        this.tasks[job].onReady.add(dependency);
+        this.tasks[dependency].dependencies.add(job);
+        this.ready.delete(dependency);
     }
-    result[nextLetter].add(letter);
-});
 
-let finalOrder: string = "";
-while (lodash.values(result).length) {
-    const nextLetters = lodash.entries(result).filter((x) => x[1].size === 0).map((v) => v[0])
-    const nextLetter = nextLetters.sort()[0];
-    finalOrder += nextLetter;
-    lodash.values(result).forEach((r) => r.delete(nextLetter));
-    delete result[nextLetter];
-
-    // console.log(finalOrder);
-    // console.log(result);
+    public results() {
+        const r: string[][] = [];
+        while (this.ready.size > 0) {
+            const ready = [...this.ready];
+            r.push(ready);
+            for (const l of ready) {
+                for (const d of this.tasks[l].onReady) {
+                    this.tasks[d].dependencies.delete(l);
+                    if (this.tasks[d].dependencies.size === 0) {
+                        this.ready.add(d);
+                    }
+                }
+                this.ready.delete(l);
+            }
+        }
+        return r.map((vals) => vals.sort().join("")).join("");
+    }
 }
 
-console.log(finalOrder);
+const jobs = new Jobs();
+
+console.time();
+loadData(__dirname + "/day7.txt").forEach((data) => {
+    const job = data.substr(5, 1);
+    const dependency = data.substr(36, 1);
+    jobs.add(job, dependency);
+});
+
+console.log("Response:", jobs.results());
+console.timeEnd();
