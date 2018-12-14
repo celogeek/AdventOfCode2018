@@ -1,61 +1,76 @@
 /* tslint:disable:no-console */
 /* tslint:disable:interface-over-type-literal */
+/* tslint:disable:max-classes-per-file */
 
+import lodash from "lodash";
 import loadData from "./data";
 
-class Jobs {
-    private tasks: {[key: string]: {
-        dependencies: Set<string>,
-        onReady: Set<string>,
-    }};
-    private ready: Set<string>;
-    constructor() {
-        this.tasks = {};
-        this.ready = new Set();
+class Task {
+    public name: string;
+    public pending: Set<Task>;
+    public next: Set<Task>;
+    constructor(name: string) {
+        this.name = name;
+        this.pending = new Set();
+        this.next = new Set();
     }
 
-    public add(job: string, dependency: string) {
-        [job, dependency].forEach((k) => {
-            if (!this.tasks[k]) {
-                this.tasks[k] = {
-                    dependencies: new Set(),
-                    onReady: new Set(),
-                };
-                this.ready.add(k);
-            }
+    public ready() {
+        return this.pending.size === 0;
+    }
+
+    public isBefore(t: Task) {
+        this.next.add(t);
+        t.pending.add(this);
+    }
+
+    public done() {
+        this.next.forEach((t) => {
+            t.pending.delete(this);
         });
-        this.tasks[job].onReady.add(dependency);
-        this.tasks[dependency].dependencies.add(job);
-        this.ready.delete(dependency);
+    }
+}
+
+class Jobs {
+    private jobs: {[key: string]: Task};
+    private results: string[][];
+    constructor() {
+        this.jobs = {};
+        this.results = [];
+
+        loadData(__dirname + "/day7.txt").forEach((data) => {
+            const job = data.substr(5, 1);
+            const next = data.substr(36, 1);
+            [job, next].forEach((t) => {
+                if (!this.jobs[t]) {
+                    this.jobs[t] = new Task(t);
+                }
+            });
+            this.jobs[job].isBefore(this.jobs[next]);
+        });
     }
 
-    public results() {
-        const r: string[][] = [];
-        while (this.ready.size > 0) {
-            const ready = [...this.ready];
-            r.push(ready);
-            for (const l of ready) {
-                for (const d of this.tasks[l].onReady) {
-                    this.tasks[d].dependencies.delete(l);
-                    if (this.tasks[d].dependencies.size === 0) {
-                        this.ready.add(d);
-                    }
-                }
-                this.ready.delete(l);
-            }
+    public resolve() {
+        const result: string[] = [];
+        lodash.filter(lodash.values(this.jobs), (v: Task) => v.pending.size === 0).forEach((t) => {
+            result.push(t.name);
+            t.next.forEach((v) => {
+                v.pending.delete(t);
+            });
+        });
+        if (result.length > 0) {
+            this.results.push(result);
+            result.forEach((v) => delete this.jobs[v]);
+            this.resolve();
         }
-        return r.map((vals) => vals.sort().join("")).join("");
+    }
+
+    public solution() {
+        return this.results.map((v) => v.sort().join("")).join("");
     }
 }
 
 const jobs = new Jobs();
+jobs.resolve();
 
-console.time();
-loadData(__dirname + "/day7.txt").forEach((data) => {
-    const job = data.substr(5, 1);
-    const dependency = data.substr(36, 1);
-    jobs.add(job, dependency);
-});
-
-console.log("Response:", jobs.results());
-console.timeEnd();
+console.log("Part1:", jobs.solution());
